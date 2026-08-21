@@ -82,16 +82,16 @@ jobs:
 
       # Builds the image on the GitHub runner and pushes it to ACR.
       # This avoids Azure ACR Tasks (az acr build), which is blocked for this registry/subscription.
-      - name: Build and push image to ACR
-        uses: docker/build-push-action@v6
-        with:
-          context: ${{ env.BUILD_CONTEXT_PATH }}
-          file: ${{ env.DOCKER_FILE }}
-          platforms: linux/amd64
-          push: true
-          tags: |
-            ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }}
-            ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:latest
+    - name: Build and push image to ACR
+      uses: docker/build-push-action@v6
+      with:
+        context: ./src/web
+        file: ./src/web/Dockerfile
+        platforms: linux/amd64
+        push: true
+        tags: |
+          ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }}
+          ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:latest
   deploy:
     permissions:
       actions: read
