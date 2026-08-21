@@ -76,9 +76,22 @@ jobs:
           az acr login -n ${{ env.AZURE_CONTAINER_REGISTRY }}
 
       # Builds and pushes an image up to your Azure Container Registry
+      # Sets up Docker Buildx on the GitHub runner
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Builds the image on the GitHub runner and pushes it to ACR.
+      # This avoids Azure ACR Tasks (az acr build), which is blocked for this registry/subscription.
       - name: Build and push image to ACR
-        run: |
-          az acr build --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }} --registry ${{ env.AZURE_CONTAINER_REGISTRY }} -g ${{ env.ACR_RESOURCE_GROUP }} -f ${{ env.DOCKER_FILE }} ${{ env.BUILD_CONTEXT_PATH }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ env.BUILD_CONTEXT_PATH }}
+          file: ${{ env.DOCKER_FILE }}
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }}
+            ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:latest
   deploy:
     permissions:
       actions: read
